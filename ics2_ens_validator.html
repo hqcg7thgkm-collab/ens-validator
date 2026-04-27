@@ -1,0 +1,396 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { padding: 1.5rem 0; max-width: 680px; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
+.tabs { display: flex; gap: 0; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; margin-bottom: 1.5rem; }
+.tab { flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 400; color: var(--color-text-secondary); background: var(--color-background-secondary); border: none; cursor: pointer; transition: all 0.15s; }
+.tab.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; }
+.tab:not(:last-child) { border-right: 0.5px solid var(--color-border-secondary); }
+.section { margin-bottom: 1.25rem; }
+.section-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--color-text-secondary); }
+.field input, .field select, .field textarea { width: 100%; padding: 7px 10px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); }
+.field textarea { resize: vertical; min-height: 60px; }
+.required-star { color: #D85A30; margin-left: 2px; }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.25rem 0; }
+.validate-btn { width: 100%; padding: 10px; font-size: 14px; font-weight: 500; color: var(--color-text-primary); background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; margin-top: 0.5rem; transition: background 0.15s; }
+.validate-btn:hover { background: var(--color-background-secondary); }
+.validate-btn:active { transform: scale(0.99); }
+.results { margin-top: 1.5rem; }
+.results-header { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; }
+.score-bar-wrap { background: var(--color-background-secondary); border-radius: 99px; height: 8px; margin-bottom: 1.25rem; overflow: hidden; }
+.score-bar { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+.summary-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+.summary-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
+.summary-card .count { font-size: 24px; font-weight: 500; }
+.summary-card .clabel { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.issue-list { display: flex; flex-direction: column; gap: 8px; }
+.issue { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: var(--border-radius-md); border: 0.5px solid; }
+.issue.error { background: #FCEBEB; border-color: #F09595; }
+.issue.warning { background: #FAEEDA; border-color: #FAC775; }
+.issue.ok { background: #EAF3DE; border-color: #C0DD97; }
+.issue-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.issue-content { flex: 1; }
+.issue-title { font-size: 13px; font-weight: 500; }
+.issue.error .issue-title { color: #A32D2D; }
+.issue.warning .issue-title { color: #854F0B; }
+.issue.ok .issue-title { color: #3B6D11; }
+.issue-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.5; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; margin-left: 6px; vertical-align: middle; }
+.badge-error { background: #F7C1C1; color: #791F1F; }
+.badge-warning { background: #FAC775; color: #633806; }
+.badge-ok { background: #C0DD97; color: #27500A; }
+.pass-banner { background: #EAF3DE; border: 0.5px solid #C0DD97; border-radius: var(--border-radius-md); padding: 14px 16px; text-align: center; margin-top: 1rem; }
+.pass-banner .pass-title { font-size: 15px; font-weight: 500; color: #27500A; }
+.pass-banner .pass-sub { font-size: 12px; color: #3B6D11; margin-top: 3px; }
+.export-btn { margin-top: 1rem; width: 100%; padding: 9px; font-size: 13px; color: var(--color-text-secondary); background: transparent; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; }
+.export-btn:hover { background: var(--color-background-secondary); }
+</style>
+
+<div class="app">
+  <div class="header">
+    <h1>ICS2 ENS compliance validator</h1>
+    <p>Check your Entry Summary Declaration data before submitting to EU customs</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('general')">General</button>
+    <button class="tab" onclick="switchTab('consignee')">Parties</button>
+    <button class="tab" onclick="switchTab('goods')">Goods</button>
+    <button class="tab" onclick="switchTab('routing')">Routing</button>
+  </div>
+
+  <div id="tab-general">
+    <div class="section">
+      <div class="section-label">Declaration details</div>
+      <div class="grid2">
+        <div class="field"><label>MRN / Local ref number<span class="required-star">*</span></label><input id="mrn" placeholder="e.g. 24FI0000123456AB01" /></div>
+        <div class="field"><label>Carrier EORI<span class="required-star">*</span></label><input id="eori_carrier" placeholder="e.g. FI1234567890" /></div>
+        <div class="field"><label>Master AWB<span class="required-star">*</span></label><input id="mawb" placeholder="e.g. 105-12345678" /></div>
+        <div class="field"><label>House AWB</label><input id="hawb" placeholder="Optional for direct shipments" /></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="section">
+      <div class="section-label">Dates &amp; filing</div>
+      <div class="grid2">
+        <div class="field"><label>Expected arrival date<span class="required-star">*</span></label><input id="arrival_date" type="date" /></div>
+        <div class="field"><label>Filing timestamp (UTC)</label><input id="filing_time" type="datetime-local" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-consignee" style="display:none">
+    <div class="section">
+      <div class="section-label">Consignor</div>
+      <div class="grid2">
+        <div class="field"><label>Name<span class="required-star">*</span></label><input id="consignor_name" placeholder="Full legal name" /></div>
+        <div class="field"><label>Country<span class="required-star">*</span></label>
+          <select id="consignor_country">
+            <option value="">Select country...</option>
+            <option>CN</option><option>US</option><option>GB</option><option>JP</option><option>KR</option><option>IN</option><option>TH</option><option>VN</option><option>MY</option><option>SG</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Street address<span class="required-star">*</span></label><input id="consignor_addr" placeholder="Street and number" /></div>
+        <div class="field"><label>City / postcode<span class="required-star">*</span></label><input id="consignor_city" placeholder="City, postcode" /></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="section">
+      <div class="section-label">Consignee</div>
+      <div class="grid2">
+        <div class="field"><label>Name<span class="required-star">*</span></label><input id="consignee_name" placeholder="Full legal name" /></div>
+        <div class="field"><label>EORI number</label><input id="consignee_eori" placeholder="If EU-based consignee" /></div>
+        <div class="field"><label>Street address<span class="required-star">*</span></label><input id="consignee_addr" placeholder="Street and number" /></div>
+        <div class="field"><label>City / postcode<span class="required-star">*</span></label><input id="consignee_city" placeholder="City, postcode" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-goods" style="display:none">
+    <div class="section">
+      <div class="section-label">Commodity</div>
+      <div class="grid2">
+        <div class="field"><label>HS / CN code<span class="required-star">*</span></label><input id="hs_code" placeholder="e.g. 8471300000" /></div>
+        <div class="field"><label>Goods description<span class="required-star">*</span></label><input id="goods_desc" placeholder="Specific description required" /></div>
+        <div class="field"><label>Gross weight (kg)<span class="required-star">*</span></label><input id="weight" type="number" placeholder="e.g. 125.5" /></div>
+        <div class="field"><label>Number of packages<span class="required-star">*</span></label><input id="packages" type="number" placeholder="e.g. 3" /></div>
+        <div class="field"><label>Package type<span class="required-star">*</span></label>
+          <select id="pkg_type">
+            <option value="">Select...</option>
+            <option>CT - Carton</option><option>PL - Pallet</option><option>BX - Box</option><option>CS - Case</option><option>CR - Crate</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>UN dangerous goods number</label><input id="undg" placeholder="e.g. UN1234 (if applicable)" /></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="section">
+      <div class="section-label">Value &amp; customs</div>
+      <div class="grid3">
+        <div class="field"><label>Declared value</label><input id="value" type="number" placeholder="e.g. 5000" /></div>
+        <div class="field"><label>Currency</label>
+          <select id="currency"><option value="">Select...</option><option>EUR</option><option>USD</option><option>GBP</option><option>CNY</option><option>JPY</option></select>
+        </div>
+        <div class="field"><label>Country of origin</label><input id="origin" placeholder="e.g. CN" maxlength="2" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-routing" style="display:none">
+    <div class="section">
+      <div class="section-label">Transport</div>
+      <div class="grid2">
+        <div class="field"><label>Carrier name<span class="required-star">*</span></label><input id="carrier" placeholder="e.g. Finnair Cargo" /></div>
+        <div class="field"><label>Flight number<span class="required-star">*</span></label><input id="flight" placeholder="e.g. AY101" /></div>
+        <div class="field"><label>Airport of departure<span class="required-star">*</span></label><input id="dep_airport" placeholder="IATA code, e.g. HEL" maxlength="3" /></div>
+        <div class="field"><label>First EU entry airport<span class="required-star">*</span></label><input id="entry_airport" placeholder="IATA code, e.g. HEL" maxlength="3" /></div>
+        <div class="field"><label>Final destination airport</label><input id="dest_airport" placeholder="IATA code, e.g. AMS" maxlength="3" /></div>
+        <div class="field"><label>Transport mode</label>
+          <select id="transport_mode">
+            <option value="">Select...</option>
+            <option value="4">4 - Air</option>
+            <option value="1">1 - Sea</option>
+            <option value="3">3 - Road</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="section">
+      <div class="section-label">Special flags</div>
+      <div class="grid2">
+        <div class="field"><label>Security &amp; safety indicator</label>
+          <select id="sec_indicator">
+            <option value="">Select...</option>
+            <option value="Y">Y - Full ENS required</option>
+            <option value="N">N - Reduced data set</option>
+            <option value="E">E - Exempted</option>
+          </select>
+        </div>
+        <div class="field"><label>Simplified procedure</label>
+          <select id="simplified">
+            <option value="N">N - Standard</option>
+            <option value="Y">Y - Simplified</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="validate-btn" onclick="runValidation()">Validate ENS declaration</button>
+
+  <div id="results" class="results" style="display:none"></div>
+</div>
+
+<script>
+function switchTab(name) {
+  ['general','consignee','goods','routing'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['general','consignee','goods','routing'][i] === name);
+  });
+}
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function runValidation() {
+  const errors = [];
+  const warnings = [];
+  const passes = [];
+
+  const mrn = val('mrn');
+  const eoriCarrier = val('eori_carrier');
+  const mawb = val('mawb');
+  const arrivalDate = val('arrival_date');
+  const filingTime = val('filing_time');
+  const consignorName = val('consignor_name');
+  const consignorCountry = val('consignor_country');
+  const consignorAddr = val('consignor_addr');
+  const consignorCity = val('consignor_city');
+  const consigneeName = val('consignee_name');
+  const consigneeAddr = val('consignee_addr');
+  const consigneeCity = val('consignee_city');
+  const consigneeEori = val('consignee_eori');
+  const hsCode = val('hs_code');
+  const goodsDesc = val('goods_desc');
+  const weight = val('weight');
+  const packages = val('packages');
+  const pkgType = val('pkg_type');
+  const undg = val('undg');
+  const flight = val('flight');
+  const depAirport = val('dep_airport');
+  const entryAirport = val('entry_airport');
+  const secIndicator = val('sec_indicator');
+  const transportMode = val('transport_mode');
+  const declared_value = val('value');
+  const currency = val('currency');
+
+  if (!mrn) errors.push({ field: 'MRN/Local ref', desc: 'A local reference number is mandatory for traceability in all ENS filings.' });
+  else passes.push({ field: 'MRN / reference', desc: 'Reference number present.' });
+
+  if (!eoriCarrier) {
+    errors.push({ field: 'Carrier EORI missing', desc: 'The carrier EORI is a mandatory field under ICS2. Must follow format: country prefix + 15-digit number.' });
+  } else if (!/^[A-Z]{2}[0-9A-Z]{1,15}$/.test(eoriCarrier)) {
+    errors.push({ field: 'Carrier EORI format invalid', desc: `"${eoriCarrier}" doesn't match the expected EORI format (e.g. FI1234567890). Check country prefix and numeric part.` });
+  } else {
+    passes.push({ field: 'Carrier EORI', desc: 'Format looks valid.' });
+  }
+
+  if (!mawb) {
+    errors.push({ field: 'Master AWB missing', desc: 'MAWB is required for air freight ENS. Format: airline prefix + 8 digits (e.g. 105-12345678).' });
+  } else if (!/^\d{3}-\d{7,8}$/.test(mawb)) {
+    warnings.push({ field: 'Master AWB format', desc: `"${mawb}" — verify this follows the standard airline AWB format: 3-digit prefix, dash, 7–8 digits.` });
+  } else {
+    passes.push({ field: 'Master AWB', desc: 'AWB format looks correct.' });
+  }
+
+  if (!arrivalDate) {
+    errors.push({ field: 'Arrival date missing', desc: 'Expected arrival date is required. For air freight, ENS must be filed at least 4 hours before arrival at first EU entry point.' });
+  } else {
+    const arrival = new Date(arrivalDate);
+    const now = new Date();
+    const hoursAhead = (arrival - now) / 36e5;
+    if (hoursAhead < 4 && hoursAhead > 0) {
+      errors.push({ field: 'ICS2 timing violation', desc: `Arrival is only ${hoursAhead.toFixed(1)}h away. Air freight ENS must be filed at least 4 hours before first EU entry. Risk of rejection.` });
+    } else if (hoursAhead < 0) {
+      warnings.push({ field: 'Arrival date in the past', desc: 'Arrival date appears to be in the past. Verify the date is correct.' });
+    } else {
+      passes.push({ field: 'Filing timing', desc: `${hoursAhead.toFixed(0)}h before arrival — within ICS2 4-hour minimum window.` });
+    }
+  }
+
+  if (!consignorName) errors.push({ field: 'Consignor name missing', desc: 'Full legal name of the consignor is a mandatory ICS2 data element.' });
+  else passes.push({ field: 'Consignor name', desc: 'Present.' });
+
+  if (!consignorCountry) errors.push({ field: 'Consignor country missing', desc: 'Country of origin of the consignor is required.' });
+  if (!consignorAddr) errors.push({ field: 'Consignor street address missing', desc: 'Full street address including number is mandatory for the consignor.' });
+  if (!consignorCity) errors.push({ field: 'Consignor city/postcode missing', desc: 'City and postcode required for consignor.' });
+
+  if (consignorName && consignorCountry && consignorAddr && consignorCity) {
+    passes.push({ field: 'Consignor address data', desc: 'All required consignor address fields present.' });
+  }
+
+  if (!consigneeName) errors.push({ field: 'Consignee name missing', desc: 'Consignee name is mandatory under ICS2 Phase 2 requirements.' });
+  if (!consigneeAddr) errors.push({ field: 'Consignee street address missing', desc: 'Consignee full address is required.' });
+  if (!consigneeCity) errors.push({ field: 'Consignee city/postcode missing', desc: 'Consignee city and postcode required.' });
+
+  if (consigneeName && consigneeAddr && consigneeCity) {
+    passes.push({ field: 'Consignee address data', desc: 'All consignee address fields present.' });
+    if (!consigneeEori) warnings.push({ field: 'Consignee EORI absent', desc: 'If the consignee is EU-established, their EORI number should be included. Not mandatory for non-EU consignees.' });
+    else passes.push({ field: 'Consignee EORI', desc: 'EORI present for consignee.' });
+  }
+
+  if (!hsCode) {
+    errors.push({ field: 'HS/CN code missing', desc: 'Commodity code (HS/CN) is mandatory. Minimum 6 digits required; 8-digit CN code recommended for EU.' });
+  } else if (!/^\d{6,10}$/.test(hsCode.replace(/\s/g,''))) {
+    warnings.push({ field: 'HS code format', desc: `"${hsCode}" — verify this is a valid HS/CN code (6–10 digits, no letters or dashes).` });
+  } else {
+    passes.push({ field: 'HS/CN code', desc: `${hsCode} — digit count looks valid.` });
+  }
+
+  if (!goodsDesc) {
+    errors.push({ field: 'Goods description missing', desc: 'A specific goods description is mandatory. Generic terms like "freight", "goods", or "merchandise" will be rejected by customs.' });
+  } else {
+    const banned = ['freight','goods','merchandise','cargo','parcel','package','shipment','items','stuff','products'];
+    const lower = goodsDesc.toLowerCase();
+    if (banned.some(b => lower === b || lower.split(' ').length < 2)) {
+      warnings.push({ field: 'Goods description may be too vague', desc: `"${goodsDesc}" — ICS2 requires a specific, meaningful description. Avoid generic terms. Example: "Laptop computers (used)" instead of "Electronics".` });
+    } else {
+      passes.push({ field: 'Goods description', desc: 'Description appears specific enough.' });
+    }
+  }
+
+  if (!weight) errors.push({ field: 'Gross weight missing', desc: 'Gross weight in kg is mandatory for all ENS filings.' });
+  else if (parseFloat(weight) <= 0) errors.push({ field: 'Gross weight invalid', desc: 'Weight must be a positive number greater than 0.' });
+  else passes.push({ field: 'Gross weight', desc: `${weight} kg declared.` });
+
+  if (!packages) errors.push({ field: 'Number of packages missing', desc: 'Package count is a mandatory ENS data element.' });
+  else passes.push({ field: 'Package count', desc: `${packages} package(s) declared.` });
+
+  if (!pkgType) warnings.push({ field: 'Package type not selected', desc: 'Package type code is required under ICS2. Select the appropriate UN/ECE package type code.' });
+  else passes.push({ field: 'Package type', desc: 'Package type code selected.' });
+
+  if (undg) {
+    if (!/^UN\d{4}$/i.test(undg.trim())) {
+      warnings.push({ field: 'UN dangerous goods number format', desc: `"${undg}" — UN DG numbers should follow the format UN followed by 4 digits (e.g. UN1234). Verify before submission.` });
+    } else {
+      warnings.push({ field: 'Dangerous goods flagged', desc: `UN number ${undg} declared. Ensure all DG documentation (SHC, NOTOC) is in order and carrier has accepted the shipment.` });
+    }
+  }
+
+  if (declared_value && !currency) warnings.push({ field: 'Currency missing', desc: 'If a declared value is provided, currency must also be specified.' });
+  if (declared_value && currency) passes.push({ field: 'Declared value', desc: `${declared_value} ${currency} declared.` });
+
+  if (!flight) errors.push({ field: 'Flight number missing', desc: 'Flight number is required for air freight ENS submissions.' });
+  else passes.push({ field: 'Flight number', desc: flight });
+
+  if (!depAirport) errors.push({ field: 'Departure airport missing', desc: 'Airport of departure (IATA 3-letter code) is mandatory.' });
+  else if (depAirport.length !== 3) warnings.push({ field: 'Departure airport code', desc: `"${depAirport}" — IATA codes must be exactly 3 letters.` });
+  else passes.push({ field: 'Departure airport', desc: depAirport.toUpperCase() });
+
+  if (!entryAirport) {
+    errors.push({ field: 'First EU entry airport missing', desc: 'The first EU point of entry (customs office) is a critical ICS2 field. This determines which national customs authority processes the ENS.' });
+  } else if (entryAirport.length !== 3) {
+    warnings.push({ field: 'Entry airport code', desc: `"${entryAirport}" — must be a 3-letter IATA code.` });
+  } else {
+    passes.push({ field: 'First EU entry airport', desc: entryAirport.toUpperCase() });
+  }
+
+  if (!transportMode) warnings.push({ field: 'Transport mode not selected', desc: 'Transport mode code is required. For air freight this should be "4 - Air".' });
+  else if (transportMode !== '4') warnings.push({ field: 'Transport mode mismatch', desc: 'You selected a non-air transport mode for what appears to be an air freight declaration. Verify this is correct.' });
+  else passes.push({ field: 'Transport mode', desc: 'Air freight (mode 4) selected.' });
+
+  if (!secIndicator) warnings.push({ field: 'Security indicator not set', desc: 'The safety & security data element should be set. Most air freight requires "Y - Full ENS required" unless an exemption applies.' });
+  else passes.push({ field: 'Security indicator', desc: `Set to "${secIndicator}".` });
+
+  renderResults(errors, warnings, passes);
+}
+
+function renderResults(errors, warnings, passes) {
+  const total = errors.length + warnings.length + passes.length;
+  const score = total > 0 ? Math.round((passes.length / total) * 100) : 0;
+  const scoreColor = score >= 80 ? '#639922' : score >= 50 ? '#BA7517' : '#A32D2D';
+
+  let html = `<div class="results-header">Validation report <span class="badge ${score>=80?'badge-ok':score>=50?'badge-warning':'badge-error'}">${score}% compliant</span></div>`;
+  html += `<div class="score-bar-wrap"><div class="score-bar" style="width:${score}%;background:${scoreColor}"></div></div>`;
+  html += `<div class="summary-cards">
+    <div class="summary-card"><div class="count" style="color:#A32D2D">${errors.length}</div><div class="clabel">Errors</div></div>
+    <div class="summary-card"><div class="count" style="color:#854F0B">${warnings.length}</div><div class="clabel">Warnings</div></div>
+    <div class="summary-card"><div class="count" style="color:#3B6D11">${passes.length}</div><div class="clabel">Passed</div></div>
+  </div>`;
+
+  html += `<div class="issue-list">`;
+
+  errors.forEach(e => {
+    html += `<div class="issue error"><div class="issue-icon">&#9888;</div><div class="issue-content"><div class="issue-title">${e.field}</div><div class="issue-desc">${e.desc}</div></div></div>`;
+  });
+  warnings.forEach(w => {
+    html += `<div class="issue warning"><div class="issue-icon">&#9432;</div><div class="issue-content"><div class="issue-title">${w.field}</div><div class="issue-desc">${w.desc}</div></div></div>`;
+  });
+  passes.forEach(p => {
+    html += `<div class="issue ok"><div class="issue-icon">&#10003;</div><div class="issue-content"><div class="issue-title">${p.field}</div><div class="issue-desc">${p.desc}</div></div></div>`;
+  });
+
+  html += `</div>`;
+
+  if (errors.length === 0 && warnings.length === 0) {
+    html += `<div class="pass-banner"><div class="pass-title">All checks passed</div><div class="pass-sub">This declaration appears ready for ENS submission.</div></div>`;
+  }
+
+  html += `<button class="export-btn" onclick="sendPrompt('Can you explain the ICS2 errors in my ENS validation report and how to fix them?')">Ask Claude to explain these issues &#8599;</button>`;
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = html;
+  resultsEl.style.display = 'block';
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
